@@ -23,7 +23,7 @@
 // Visual Studio references
 
 /// <reference path="jquery-1.9.1.min.js" />
-/// <reference path="jquery-ui-1.10.2.custom.min.js" />
+/// <reference path="jquery-ui-1.10.2.min.js" />
 /// <reference path="moment.min.js" />
 
 var TimeScheduler = {
@@ -107,7 +107,7 @@ var TimeScheduler = {
 
         /* The minimum height of each section */
         MinRowHeight: 40,
-        
+
         /* Whether to show the Current Time or not */
         ShowCurrentTime: true,
 
@@ -116,6 +116,9 @@ var TimeScheduler = {
 
         /* Whether to show the Today button */
         ShowToday: true,
+
+        /* Able to show Goto, Today, Prev & Next button */
+        ShowChangeTime: true,
 
         /* Text to use when creating the scheduler */
         Text: {
@@ -244,7 +247,11 @@ var TimeScheduler = {
 
     /* Initializes the Timeline Scheduler with the given opts. If omitted, defaults are used. */
     /* This should be used to recreate the scheduler with new defaults or refill items */
-    Init: function (overrideCache) {
+    Init: function (options) {
+        options = options || { overrideCache: false, Events: {}, Text: {} };
+        options.Events = $.extend({},TimeScheduler.Options.Events, options.Events);
+        options.Text = $.extend({}, TimeScheduler.Options.Text, options.Text);
+        $.extend(TimeScheduler.Options, options);
         TimeScheduler.SetupPrototypes();
 
         TimeScheduler.Options.Start = moment(TimeScheduler.Options.Start);
@@ -263,8 +270,9 @@ var TimeScheduler = {
         TimeScheduler.TableWrap = $(document.createElement('div'))
             .addClass('time-sch-table-wrapper')
             .appendTo(TimeScheduler.Wrapper);
-        
+
         TimeScheduler.CreateCalendar();
+        overrideCache = options.overrideCache || false;
         TimeScheduler.FillSections(overrideCache);
     },
 
@@ -295,7 +303,7 @@ var TimeScheduler = {
         var tdArray, foundTD;
         var prevIndex, nextIndex, colspan;
         var complete, isEven;
-        
+
         trs = TimeScheduler.TableHeader.find('tr');
 
         if (specificHeader !== undefined) {
@@ -430,8 +438,8 @@ var TimeScheduler = {
                         .addClass('time-sch-date time-sch-date-header')
                         .append(fThisTime)
                         .appendTo(tr);
-                    
-                    td  .addClass('time-sch-header-' + headerCount + '-date-start')
+
+                    td.addClass('time-sch-header-' + headerCount + '-date-start')
                         .addClass('time-sch-header-' + headerCount + '-date-end')
                         .addClass('time-sch-header-' + headerCount + '-date-column-' + currentTimeIndex)
                         .addClass('time-sch-header-' + headerCount + '-date-' + ((currentTimeIndex % 2 === 0) ? 'even' : 'odd'));
@@ -563,7 +571,7 @@ var TimeScheduler = {
 
                     itemDiff = foundStart.diff(TimeScheduler.Options.Start, 'minutes');
                     itemSelfDiff = Math.abs(foundStart.diff(foundEnd, 'minutes'));
-                    
+
                     calcTop = 0;
                     calcLeft = (itemDiff / minuteDiff) * 100;
                     calcWidth = (itemSelfDiff / minuteDiff) * 100;
@@ -592,7 +600,7 @@ var TimeScheduler = {
                             event = item.events[ev];
 
                             eventDiff = (event.at.diff(foundStart, 'minutes') / itemSelfDiff) * 100;
-                            
+
                             $(document.createElement('div'))
                                 .addClass('time-sch-item-event ' + (event.classes ? event.classes : ''))
                                 .css('left', eventDiff + '%')
@@ -635,7 +643,7 @@ var TimeScheduler = {
                 }
             }
         }
-        
+
         // Sort out layout issues so no elements overlap
         for (var prop in inSection) {
             section = TimeScheduler.Sections[prop];
@@ -648,13 +656,13 @@ var TimeScheduler = {
                 for (var prev = 0; prev < i; prev++) {
                     var prevElemTop, prevElemBottom;
                     prevElem = inSection[prop][prev];
-                        
+
                     prevElemTop = prevElem.Element.position().top;
                     prevElemBottom = prevElemTop + prevElem.Element.outerHeight();
 
                     elemTop = elem.Element.position().top;
                     elemBottom = elemTop + elem.Element.outerHeight();
-                        
+
                     // (elem.start must be between prevElem.start and prevElem.end OR
                     //  elem.end must be between prevElem.start and prevElem.end) AND
                     // (elem.top must be between prevElem.top and prevElem.bottom OR
@@ -672,7 +680,7 @@ var TimeScheduler = {
                         elem.Element.css('top', prevElemBottom + 1);
                     }
                 }
-                
+
                 elemBottom = elem.Element.position().top + elem.Element.outerHeight() + 1;
 
                 if (elemBottom > section.container.height()) {
@@ -810,7 +818,7 @@ var TimeScheduler = {
 
         if (TimeScheduler.Options.AllowResizing) {
             var foundHandles = null;
-            
+
             if (itemElem.find('.time-sch-item-start').length && itemElem.find('.time-sch-item-end').length) {
                 foundHandles = 'e, w';
             }
@@ -968,7 +976,7 @@ var TimeScheduler = {
     FillHeader: function () {
         var durationString, title, periodContainer, timeContainer, periodButton, timeButton;
         var selectedPeriod, end, period;
-        
+
         periodContainer = $(document.createElement('div'))
             .addClass('time-sch-period-container');
 
@@ -1001,50 +1009,51 @@ var TimeScheduler = {
                 .click(TimeScheduler.Period_Clicked)
                 .appendTo(periodContainer);
         }
+        if (TimeScheduler.Options.ShowChangeTime) {
+            if (TimeScheduler.Options.ShowGoto) {
+                $(document.createElement('a'))
+                    .addClass('time-sch-time-button time-sch-time-button-goto time-sch-button')
+                    .attr({
+                        href: '#',
+                        title: TimeScheduler.Options.Text.GotoButtonTitle
+                    })
+                    .append(TimeScheduler.Options.Text.GotoButton)
+                    .click(TimeScheduler.GotoTimeShift_Clicked)
+                    .appendTo(timeContainer);
+            }
 
-        if (TimeScheduler.Options.ShowGoto) {
+            if (TimeScheduler.Options.ShowToday) {
+                $(document.createElement('a'))
+                    .addClass('time-sch-time-button time-sch-time-button-today time-sch-button')
+                    .attr({
+                        href: '#',
+                        title: TimeScheduler.Options.Text.TodayButtonTitle
+                    })
+                    .append(TimeScheduler.Options.Text.TodayButton)
+                    .click(TimeScheduler.TimeShift_Clicked)
+                    .appendTo(timeContainer);
+            }
+
             $(document.createElement('a'))
-                .addClass('time-sch-time-button time-sch-time-button-goto time-sch-button')
+                .addClass('time-sch-time-button time-sch-time-button-prev time-sch-button')
                 .attr({
                     href: '#',
-                    title: TimeScheduler.Options.Text.GotoButtonTitle
+                    title: TimeScheduler.Options.Text.PrevButtonTitle
                 })
-                .append(TimeScheduler.Options.Text.GotoButton)
-                .click(TimeScheduler.GotoTimeShift_Clicked)
+                .append(TimeScheduler.Options.Text.PrevButton)
+                .click(TimeScheduler.TimeShift_Clicked)
                 .appendTo(timeContainer);
-        }
 
-        if (TimeScheduler.Options.ShowToday) {
             $(document.createElement('a'))
-                .addClass('time-sch-time-button time-sch-time-button-today time-sch-button')
+                .addClass('time-sch-time-button time-sch-time-button-next time-sch-button')
                 .attr({
                     href: '#',
-                    title: TimeScheduler.Options.Text.TodayButtonTitle
+                    title: TimeScheduler.Options.Text.NextButtonTitle
                 })
-                .append(TimeScheduler.Options.Text.TodayButton)
+                .append(TimeScheduler.Options.Text.NextButton)
                 .click(TimeScheduler.TimeShift_Clicked)
                 .appendTo(timeContainer);
         }
-
-        $(document.createElement('a'))
-            .addClass('time-sch-time-button time-sch-time-button-prev time-sch-button')
-            .attr({
-                href: '#',
-                title: TimeScheduler.Options.Text.PrevButtonTitle
-            })
-            .append(TimeScheduler.Options.Text.PrevButton)
-            .click(TimeScheduler.TimeShift_Clicked)
-            .appendTo(timeContainer);
-
-        $(document.createElement('a'))
-            .addClass('time-sch-time-button time-sch-time-button-next time-sch-button')
-            .attr({
-                href: '#',
-                title: TimeScheduler.Options.Text.NextButtonTitle
-            })
-            .append(TimeScheduler.Options.Text.NextButton)
-            .click(TimeScheduler.TimeShift_Clicked)
-            .appendTo(timeContainer);
     },
 
     GotoTimeShift_Clicked: function (event) {

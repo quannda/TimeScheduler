@@ -112,30 +112,28 @@ var Calendar = {
     ],
 
     Init: function () {
-        TimeScheduler.Options.GetSections = Calendar.GetSections;
-        TimeScheduler.Options.GetSchedule = Calendar.GetSchedule;
-        TimeScheduler.Options.Start = today;
-        TimeScheduler.Options.Periods = Calendar.Periods;
-        TimeScheduler.Options.SelectedPeriod = '1 week';
-        TimeScheduler.Options.Element = $('.calendar');
+        var options = {
+            GetSections: Calendar.GetSections,
+            GetSchedule: Calendar.GetSchedule,
+            Start: today,
+            Periods: Calendar.Periods,
+            SelectedPeriod: '1 week',
+            Element: $('.calendar'),
+            AllowDragging: true,
+            AllowResizing: true,
+            Events: {
+                ItemClicked: Calendar.Item_Clicked,
+                ItemDropped: Calendar.Item_Dragged,
+                ItemResized: Calendar.Item_Resized,
 
-        TimeScheduler.Options.AllowDragging = true;
-        TimeScheduler.Options.AllowResizing = true;
-
-        TimeScheduler.Options.Events.ItemClicked = Calendar.Item_Clicked;
-        TimeScheduler.Options.Events.ItemDropped = Calendar.Item_Dragged;
-        TimeScheduler.Options.Events.ItemResized = Calendar.Item_Resized;
-
-        TimeScheduler.Options.Events.ItemMovement = Calendar.Item_Movement;
-        TimeScheduler.Options.Events.ItemMovementStart = Calendar.Item_MovementStart;
-        TimeScheduler.Options.Events.ItemMovementEnd = Calendar.Item_MovementEnd;
-
-        TimeScheduler.Options.Text.NextButton = '&nbsp;';
-        TimeScheduler.Options.Text.PrevButton = '&nbsp;';
-
-        TimeScheduler.Options.MaxHeight = 100;
-
-        TimeScheduler.Init();
+                ItemMovement: Calendar.Item_Movement,
+                ItemMovementStart: Calendar.Item_MovementStart,
+                ItemMovementEnd: Calendar.Item_MovementEnd
+            },
+            Text: { NextButton: '&nbsp;', PrevButton: '&nbsp;' },
+            MaxHeight: 100
+        }
+        TimeScheduler.Init(options);
     },
 
     GetSections: function (callback) {
@@ -197,7 +195,7 @@ var Calendar = {
     Item_Movement: function (item, start, end) {
         var html;
 
-        html =  '<div>';
+        html = '<div>';
         html += '   <div>';
         html += '       Start: ' + start.format('Do MMM YYYY HH:mm');
         html += '   </div>';
