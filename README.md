@@ -1,8 +1,9 @@
 TimeScheduler
 =============
 
-Many thank to Zallist
-A simple JavaScript Timeline Scheduler library
+A simple JavaScript Timeline Scheduler library.  
+Many thank to Zallist.
+
 [Go here for a live demo using the latest version](http://quannda.github.io/TimeScheduler/Calendar.html)
 
 
@@ -39,5 +40,4 @@ TimeScheduler Init Event Options
 License
 ==
 
-The library is made available under the MIT license. 
-http://en.m.wikipedia.org/wiki/MIT_License
+The library is made available under the [MIT license](http://en.m.wikipedia.org/wiki/MIT_License).
